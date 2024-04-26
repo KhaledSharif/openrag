@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   ollama:
     volumes:
@@ -13,14 +11,12 @@ services:
           devices:
             - driver: nvidia
               count: 1
-              capabilities: [gpu]
+              capabilities: [ gpu ]
 
-  ollama-webui:
-    image: ghcr.io/ollama-webui/ollama-webui:main
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
     volumes:
-      - ollama-webui-data:/app/backend/data
-    depends_on:
-      - ollama
+      - open-webui-data:/app/backend/data
     ports:
       - 8080:8080
     extra_hosts:
@@ -34,5 +30,5 @@ services:
       - chromadb-data:/chroma/chroma
 
 volumes:
-  ollama-webui-data:
+  open-webui-data:
   chromadb-data:
