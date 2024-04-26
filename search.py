@@ -7,7 +7,7 @@ ollama_options = Options(num_predict=1_000, seed=42, temperature=0.0, num_ctx=8_
 embedmodel = getconfig()["embedmodel"]
 mainmodel = getconfig()["mainmodel"]
 chroma = chromadb.HttpClient(host="localhost", port=8000)
-collection = chroma.get_or_create_collection(getconfig()["sources"])
+collection = chroma.get_or_create_collection(getconfig()["name"])
 
 query = " ".join(sys.argv[1:])
 queryembed = ollama.embeddings(model=embedmodel, prompt=query)["embedding"]

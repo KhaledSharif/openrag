@@ -30,14 +30,6 @@ class ExtractText(dspy.Signature):
         desc="useful text extracted from the document containing the main information"
     )
 
-
-# for f in glob.glob("./content/*"):
-#     os.remove(f)
-
-for f in glob.glob("./sentences/*"):
-    os.remove(f)
-
-
 lm_provider = dspy.OllamaLocal(
     model=getconfig()["chunkmodel"], max_tokens=1_000, num_ctx=4_000
 )
@@ -57,13 +49,13 @@ def clean_string(input_string):
     return clean_string
 
 
-collection_name = getconfig()["sources"]
+collection_name = getconfig()["name"]
 
 chroma = chromadb.HttpClient(host="localhost", port=8000)
 
-# if any(collection.name == collection_name for collection in chroma.list_collections()):
-#     print("deleting collection")
-#     chroma.delete_collection(collection_name)
+if any(collection.name == collection_name for collection in chroma.list_collections()):
+    print("deleting collection")
+    chroma.delete_collection(collection_name)
     
 collection = chroma.get_or_create_collection(
     name=collection_name, metadata={"hnsw:space": "cosine"}
