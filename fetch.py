@@ -4,7 +4,6 @@ from utilities import get_filename, readtext, getconfig
 import re
 import dspy
 import os
-import glob
 import html2text
 from textwrap import wrap
 from tqdm import tqdm
@@ -29,6 +28,7 @@ class ExtractText(dspy.Signature):
     text = dspy.OutputField(
         desc="useful text extracted from the document containing the main information"
     )
+
 
 lm_provider = dspy.OllamaLocal(
     model=getconfig()["chunkmodel"], max_tokens=1_000, num_ctx=4_000
@@ -70,19 +70,19 @@ with open(getconfig()["sources"]) as f:
 for line_index, filename in enumerate(lines):
     print("\n", "=" * 40, "\n")
     print(filename, "\n")
-    
+
     content_path = get_filename(filename)
-    
-    if os.path.exists(content_path) and os.path.isfile(content_path):
-        print("skipping!")
-        print("\n", "=" * 40, "\n")
-        continue
+
+    # if os.path.exists(content_path) and os.path.isfile(content_path):
+    #     print("skipping!")
+    #     print("\n", "=" * 40, "\n")
+    #     continue
 
     soup = readtext(filename).prettify()
 
     chunks = text_maker.handle(soup)
 
-    step_size = 30_000
+    step_size = 20_000
     step_overlap = step_size // 10
     for chunk_index in tqdm(range(0, len(chunks), step_size - step_overlap)):
         chunk_end = min(len(chunks), chunk_index + step_size)
@@ -94,11 +94,13 @@ for line_index, filename in enumerate(lines):
             continue
 
         try:
-            chunk_processed = gen_chunks(document=chunk, hint="extract useful text from the document").text
+            chunk_processed = gen_chunks(
+                document=chunk, hint="extract useful text from the document"
+            ).text
         except TypeError as e:
             print("warning type error during dspy extraction")
             continue
-        
+
         chunk_processed = "\n".join(wrap(chunk_processed, width=150))
 
         with open(
@@ -116,9 +118,8 @@ for line_index, filename in enumerate(lines):
             senf.write("OUTPUT" + "\n")
             senf.write("=" * 40 + "\n")
             senf.write(chunk_processed)
-            
+
             senf.write("\n\n")
-            
 
         embed = ollama.embeddings(model=embedmodel, prompt=chunk_processed)["embedding"]
         collection.add(

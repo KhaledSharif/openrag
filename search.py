@@ -16,9 +16,7 @@ n_docs = int(getconfig()["ndocs"])
 
 assert n_docs >= 1
 
-docs = collection.query(query_embeddings=[queryembed], n_results=n_docs)[
-    "documents"
-][0]
+docs = collection.query(query_embeddings=[queryembed], n_results=n_docs)["documents"][0]
 
 docs = "\n\n".join(docs)
 

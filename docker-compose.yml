@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  ollama:
+    volumes:
+      - /home/khaled/.ollama:/root/.ollama
+    image: ollama/ollama:latest
+    ports:
+      - "0.0.0.0:11434:11434"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  ollama-webui:
+    image: ghcr.io/ollama-webui/ollama-webui:main
+    volumes:
+      - ollama-webui-data:/app/backend/data
+    depends_on:
+      - ollama
+    ports:
+      - 8080:8080
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
+  chromadb:
+    image: chromadb/chroma:latest
+    ports:
+      - 8000:8000
+    volumes:
+      - chromadb-data:/chroma/chroma
+
+volumes:
+  ollama-webui-data:
+  chromadb-data:

@@ -1,0 +1,5 @@
+.env
+content
+sentences
+__pycache__
+*.log
