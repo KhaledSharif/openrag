@@ -82,7 +82,7 @@ for line_index, filename in enumerate(lines):
 
     chunks = text_maker.handle(soup)
 
-    step_size = 20_000
+    step_size = 40_000
     step_overlap = step_size // 10
     for chunk_index in tqdm(range(0, len(chunks), step_size - step_overlap)):
         chunk_end = min(len(chunks), chunk_index + step_size)
