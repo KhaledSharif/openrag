@@ -4,7 +4,7 @@ services:
       - /home/khaled/.ollama:/root/.ollama
     image: ollama/ollama:latest
     ports:
-      - "0.0.0.0:11434:11434"
+      - 11434:11434
     deploy:
       resources:
         reservations:
@@ -13,22 +13,9 @@ services:
               count: 1
               capabilities: [ gpu ]
 
-  open-webui:
-    image: ghcr.io/open-webui/open-webui:main
-    volumes:
-      - open-webui-data:/app/backend/data
-    ports:
-      - 8080:8080
-    extra_hosts:
-      - host.docker.internal:host-gateway
-
   chromadb:
     image: chromadb/chroma:latest
     ports:
       - 8000:8000
     volumes:
-      - chromadb-data:/chroma/chroma
-
-volumes:
-  open-webui-data:
-  chromadb-data:
+      - ./.chroma:/chroma/chroma

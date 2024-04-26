@@ -3,3 +3,5 @@ content
 sentences
 __pycache__
 *.log
+.ollama
+.chroma
