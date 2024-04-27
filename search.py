@@ -2,7 +2,13 @@ import ollama, sys, chromadb
 from ollama import Options
 from utilities import getconfig
 
-ollama_options = Options(num_predict=1_000, seed=42, temperature=0.0, num_ctx=8_000)
+ollama_options = Options(
+    num_predict=int(getconfig()["npredict"]),
+    seed=42,
+    temperature=0.0,
+    num_ctx=int(getconfig()["ncontext"]),
+)
+
 
 embedmodel = getconfig()["embedmodel"]
 mainmodel = getconfig()["mainmodel"]
