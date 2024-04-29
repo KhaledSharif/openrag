@@ -27,9 +27,11 @@ class ReturnRankedDocuments(dspy.Signature):
 
 generate_ranking = dspy.ChainOfThoughtWithHint(ReturnRankedDocuments)
 
+embedmodel = getconfig()["embedmodel"]
+mainmodel = getconfig()["mainmodel"]
 
 lm_provider = dspy.OllamaLocal(
-    model=getconfig()["mainmodel"],
+    model=mainmodel,
     max_tokens=int(getconfig()["npredict"]),
     num_ctx=int(getconfig()["ncontext"]),
 )
@@ -43,10 +45,6 @@ ollama_options = Options(
     num_ctx=int(getconfig()["ncontext"]),
 )
 
-
-embedmodel = getconfig()["embedmodel"]
-mainmodel = getconfig()["mainmodel"]
-
 chroma = chromadb.HttpClient(host="localhost", port=8000)
 collection = chroma.get_or_create_collection(getconfig()["name"])
 
@@ -55,44 +53,58 @@ queryembed = ollama.embeddings(model=embedmodel, prompt=query)["embedding"]
 
 n_docs = int(getconfig()["ndocs"])
 n_hop_take = int(getconfig()["nhoptake"])
+n_hops = int(getconfig()["nhops"])
 
 assert n_docs >= 1
+assert n_hops >= 1
 assert n_hop_take >= 1
 assert n_hop_take < n_docs
 
 docs = collection.query(query_embeddings=[queryembed], n_results=n_docs)["documents"][0]
-docs_joined = "\n\n\n".join(
-    [f"<passage_{i}>{d}</passage_{i}>" for i, d in enumerate(docs)]
-)
 
-print(docs_joined)
+for current_hop in range(n_hops):
+    print("=" * 40)
+    print(f"HOP {current_hop+1} of {n_hops}")
+    print("=" * 40)
 
-n_hops = int(getconfig()["nhops"])
+    docs_joined = "\n\n\n".join(
+        [f"<passage_{i}>{d}</passage_{i}>" for i, d in enumerate(docs)]
+    )
+
+    print("\n", docs_joined, "\n")
+
+    # Get the most important indices, ranked
+    indices_string = generate_ranking(
+        question=query,
+        context=docs_joined,
+        hint=f"""
+        Return a comma seperated list of indices from 0 to {len(docs)-1} corresponding to 
+        passage indices ordered by helpfulness in answering the question, 
+        with most helpful passage index first, and the least helpful passage index last
+        """,
+    ).ranking
+
+    numbers_line = re.search(r"(\d+(?:,\s*\d+)*)", indices_string).group(1)
+
+    # Split the numbers by comma and strip whitespace
+    indices = [int(num.strip()) for num in numbers_line.split(",")]
+
+    print("-" * 20)
+    print("Passage Ranking")
+    print(indices)
+    print(f"Keeping top {n_hop_take} passages only")
+    print("-" * 20)
+
+    docs = [docs[i] for i in indices[:n_hop_take]]
+
+    if current_hop != (n_hops-1):
+        new_query = "\n".join(docs) + "\n\n" + query
+        new_embed = ollama.embeddings(model=embedmodel, prompt=new_query)["embedding"]
+        docs += collection.query(query_embeddings=[new_embed], n_results=n_docs)[
+            "documents"
+        ][0]
 
 
-# Get the most important indices, ranked
-indices_string = generate_ranking(
-    question=query,
-    context=docs_joined,
-    hint=f"""
-    Return a comma seperated list of indices from 0 to {len(docs)-1} corresponding to 
-    passage indices ordered by helpfulness in answering the question, 
-    with most helpful passage index first, and the least helpful passage index last
-    """,
-).ranking
-
-numbers_line = re.search(r"(\d+(?:,\s*\d+)*)", indices_string).group(1)
-
-# Split the numbers by comma and strip whitespace
-indices = [int(num.strip()) for num in numbers_line.split(",")]
-
-print("-" * 20)
-print("Passage Ranking")
-print(indices)
-print(f"Keeping top {n_hop_take} passages only")
-print("-" * 20)
-
-docs = [docs[i] for i in indices[:n_hop_take]]
 docs = "\n\n\n".join(docs)
 
 modelquery = f"""

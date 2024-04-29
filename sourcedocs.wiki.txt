@@ -6,10 +6,6 @@ https://en.wikipedia.org/wiki/Checkpoint_inhibitor
 https://en.wikipedia.org/wiki/Biomarker
 https://en.wikipedia.org/wiki/Immune_checkpoint
 https://en.wikipedia.org/wiki/Microsatellite_instability
-https://en.wikipedia.org/wiki/Methyltransferase
-https://en.wikipedia.org/wiki/Mutation
-https://en.wikipedia.org/wiki/Mutagenesis
-https://en.wikipedia.org/wiki/Molecular_biology
 https://en.wikipedia.org/wiki/Genetically_modified_organism
 https://en.wikipedia.org/wiki/Chinese_hamster_ovary_cell
 https://en.wikipedia.org/wiki/Immortalised_cell_line
