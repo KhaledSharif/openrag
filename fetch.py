@@ -3,7 +3,6 @@ import ollama
 from utilities import get_filename, readtext, getconfig
 import re
 import dspy
-import os
 import html2text
 from textwrap import wrap
 from tqdm import tqdm
@@ -31,7 +30,9 @@ class ExtractText(dspy.Signature):
 
 
 lm_provider = dspy.OllamaLocal(
-    model=getconfig()["chunkmodel"], max_tokens=1_000, num_ctx=4_000
+    model=getconfig()["chunkmodel"],
+    max_tokens=int(getconfig()["npredict"]),
+    num_ctx=int(getconfig()["ncontext"]),
 )
 
 dspy.settings.configure(lm=lm_provider)
@@ -56,7 +57,7 @@ chroma = chromadb.HttpClient(host="localhost", port=8000)
 if any(collection.name == collection_name for collection in chroma.list_collections()):
     print("deleting collection")
     chroma.delete_collection(collection_name)
-    
+
 collection = chroma.get_or_create_collection(
     name=collection_name, metadata={"hnsw:space": "cosine"}
 )
@@ -73,16 +74,11 @@ for line_index, filename in enumerate(lines):
 
     content_path = get_filename(filename)
 
-    # if os.path.exists(content_path) and os.path.isfile(content_path):
-    #     print("skipping!")
-    #     print("\n", "=" * 40, "\n")
-    #     continue
-
     soup = readtext(filename).prettify()
 
     chunks = text_maker.handle(soup)
 
-    step_size = 40_000
+    step_size = int(getconfig()["chunksize"])
     step_overlap = step_size // 10
     for chunk_index in tqdm(range(0, len(chunks), step_size - step_overlap)):
         chunk_end = min(len(chunks), chunk_index + step_size)
