@@ -22,10 +22,15 @@ class ExtractText(dspy.Signature):
     """Extract the useful text from the information provided in the document"""
 
     document = dspy.InputField(
-        desc="provided document which contains information to use as a resource when extracting the useful text"
+        desc="""
+        provided document which contains information to use as a resource
+        when extracting the useful text
+        """
     )
     text = dspy.OutputField(
-        desc="useful text extracted from the document containing the main information"
+        desc="""
+        useful text extracted from the document containing the main information
+        """
     )
 
 
@@ -39,6 +44,13 @@ dspy.settings.configure(lm=lm_provider)
 
 gen_chunks = dspy.ChainOfThoughtWithHint(ExtractText)
 
+def generate_chunks():
+    c = gen_chunks(
+        document=chunk, hint="""
+        extract useful text from the document
+        """
+    )
+    return c.text
 
 def clean_string(input_string):
     # Remove non-ASCII characters
@@ -90,9 +102,7 @@ for line_index, filename in enumerate(lines):
             continue
 
         try:
-            chunk_processed = gen_chunks(
-                document=chunk, hint="extract useful text from the document"
-            ).text
+
         except TypeError as e:
             print("warning type error during dspy extraction")
             continue
