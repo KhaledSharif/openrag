@@ -1,0 +1,4 @@
+ollama
+dspy
+html2text
+tqdm

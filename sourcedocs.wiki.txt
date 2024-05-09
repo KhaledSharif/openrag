@@ -1,5 +1,3 @@
-https://en.wikipedia.org/wiki/DNA
-https://en.wikipedia.org/wiki/RNA
 https://en.wikipedia.org/wiki/DNA_repair
 https://en.wikipedia.org/wiki/DNA_mismatch_repair
 https://en.wikipedia.org/wiki/Checkpoint_inhibitor
