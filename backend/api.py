@@ -1,40 +1,48 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from enum import Enum
+from pymongo import MongoClient
+
+client = MongoClient("mongodb://localhost:27017/")
 
 app = FastAPI()
 
-class ModelName(str, Enum):
-    alexnet = "alexnet"
-    resnet = "resnet"
-    lenet = "lenet"
+
+class DocumentType(str, Enum):
+    pdf = "pdf"
+    html = "html"
+    txt = "txt"
+
 
 class Document(BaseModel):
-    name: str
+    id: int
+    name: str  # filename or url
+    type: DocumentType
     content: str | None = None
 
     model_config = {
         "json_schema_extra": {
-            "examples": [{"name": "DNA", "content": "A very nice document"}]
+            "examples": [
+                {
+                    "id": 1,
+                    "name": "https://github.com/cyberbotics/webots",
+                    "type": "html",
+                    "content": "<html></html>",
+                }
+            ]
         }
     }
 
 
-docs = [Document(name="DNA", content="DNA is cool")]
-
-
+docs = [Document(id=1, name="dna.txt", content="DNA is cool", type=DocumentType.txt)]
 
 
 @app.get("/docs/{doc_id}", response_model=Document)
 async def get_document(doc_id: int):
     return docs[0]
 
-@app.get("/models/{model_name}")
-async def get_model(model_name: ModelName):
-    if model_name is ModelName.alexnet:
-        return {"model_name": model_name, "message": "Deep Learning FTW!"}
 
-    if model_name.value == "lenet":
-        return {"model_name": model_name, "message": "LeCNN all the images"}
+@app.post("/docs", response_model=int)
+async def create_document(doc_type: DocumentType):
+    return docs[0].id
 
-    return {"model_name": model_name, "message": "Have some residuals"}
